@@ -24,5 +24,3 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Run tests
         run: npm test
-        env:
-          DSH_APPROVAL_ALERT_NO_SOUND: "1"
