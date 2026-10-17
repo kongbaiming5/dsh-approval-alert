@@ -1,0 +1,60 @@
+{
+  "name": "dsh-approval-alert",
+  "version": "0.1.0",
+  "description": "Recurring macOS chime for DeepSeek Harness approvals, agent questions, and system TCC permission prompts (0/25/20/15/10/5s cadence).",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./core": "./lib/core.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE",
+    "scripts",
+    "test"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "approval",
+    "permission",
+    "notification",
+    "sound",
+    "macos",
+    "tcc",
+    "macos-permissions",
+    "system-sound",
+    "deepseek"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "^3.18.4"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kongbaiming5/dsh-approval-alert.git"
+  },
+  "homepage": "https://github.com/kongbaiming5/dsh-approval-alert#readme",
+  "bugs": {
+    "url": "https://github.com/kongbaiming5/dsh-approval-alert/issues"
+  },
+  "author": "kongbaiming5"
+}

@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+._*
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Build output and packed tarballs
+build/
+dist/
+out/
+*.tgz
+
+# Logs and local traces
+*.log
+trace*.txt
+
+# Environment and credentials
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Editors
+.vscode/
+.idea/
+*.swp

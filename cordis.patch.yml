@@ -1,0 +1,20 @@
+# dsh-approval-alert — inserts the plugin into a profile.
+#
+# This file documents the entry to copy into
+# $DSH_HOME/profiles/<profile>/cordis.patch.yml (or a bundle layer).
+- insert:
+    - id: approval-alert
+      name: dsh-approval-alert
+      config:
+        enabled: true
+        sound: Glass
+        volume: 1
+        burst: 2
+        alertOnApproval: true
+        alertOnQuestions: true
+        watchSystemPrompts: true
+        systemPromptTimeoutMs: 600000
+        notify: true
+        startupChime: false
+        locale: zh
+        traceFile: ""
