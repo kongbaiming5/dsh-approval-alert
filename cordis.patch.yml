@@ -1,7 +1,7 @@
-# dsh-approval-alert — inserts the plugin into a profile.
+# dsh-approval-alert 的 bundle patch。
 #
-# This file documents the entry to copy into
-# $DSH_HOME/profiles/<profile>/cordis.patch.yml (or a bundle layer).
+# 这是 bundle 层：安装并被 profile 选中后，DSH 会插入 approval-alert 行。
+# 不需要再手动把这段复制到 profile 的 cordis.patch.yml。
 - insert:
     - id: approval-alert
       name: dsh-approval-alert

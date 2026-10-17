@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { apply, name } from '../lib/index.js'
 
 process.env.DSH_APPROVAL_ALERT_NO_SOUND = '1'
+process.env.DSH_APPROVAL_ALERT_NO_TCC_WATCH = '1'
 
 function fakeContext() {
   const listeners = new Map()
@@ -91,9 +92,33 @@ test('question requests are alerted, and a throwing answerer still resolves the 
   rmSync(dir, { recursive: true, force: true })
 })
 
-test('disabling approval alerts registers no approval listener', () => {
-  const { ctx, listeners } = fakeContext()
-  apply(ctx, { enabled: true, alertOnApproval: false, alertOnQuestions: false, watchSystemPrompts: false, notify: false, traceFile: '' })
-  assert.equal(listeners.has('approval/request'), false)
-  assert.equal(listeners.has('user-questions/request'), false)
+test('disabled sources still delegate to the answerer without alerting', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-approval-alert-'))
+  const traceFile = join(dir, 'trace.log')
+  const { ctx, listeners, disposers } = fakeContext()
+  apply(ctx, {
+    enabled: true,
+    alertOnApproval: false,
+    alertOnQuestions: false,
+    watchSystemPrompts: false,
+    notify: false,
+    burst: 1,
+    traceFile,
+  })
+
+  assert.equal(listeners.get('approval/request')?.options?.prepend, true)
+  assert.equal(listeners.get('user-questions/request')?.options?.prepend, true)
+
+  const outcome = await listeners.get('approval/request').fn(
+    { toolName: 'bash', callId: 'disabled-1' },
+    async () => 'rejected',
+  )
+  assert.equal(outcome, 'rejected')
+
+  const trace = readTrace(traceFile)
+  assert.doesNotMatch(trace, /begin approval/)
+  assert.doesNotMatch(trace, /play /)
+
+  for (const dispose of disposers) dispose()
+  rmSync(dir, { recursive: true, force: true })
 })

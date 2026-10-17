@@ -1,19 +1,24 @@
 {
   "name": "dsh-approval-alert",
-  "version": "0.1.0",
-  "description": "Recurring macOS chime for DeepSeek Harness approvals, agent questions, and system TCC permission prompts (0/25/20/15/10/5s cadence).",
+  "version": "0.2.0",
+  "description": "DeepSeek Harness 授权提醒：DSH 审批、Agent 提问与 macOS 权限弹窗出现时播放系统声音，带插件页开关和中文配置表单。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
+    "./client": "./lib/client.js",
     "./core": "./lib/core.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
+    "locale/*.json",
+    "icon.svg",
     "cordis.patch.yml",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "LICENSE",
     "scripts",
     "test"
@@ -31,22 +36,27 @@
     "tcc",
     "macos-permissions",
     "system-sound",
-    "deepseek"
+    "deepseek",
+    "chinese"
   ],
   "license": "MIT",
   "engines": {
     "node": ">=20"
   },
   "peerDependencies": {
-    "@deepseek-ai/schemastery": "^3.18.4"
+    "@deepseek-ai/schemastery": "^3.18.4",
+    "react": "^18.2.0"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/schemastery": {
       "optional": true
+    },
+    "react": {
+      "optional": true
     }
   },
   "scripts": {
-    "test": "node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs"
+    "test": "node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs test/client.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -56,5 +66,18 @@
   "bugs": {
     "url": "https://github.com/kongbaiming5/dsh-approval-alert/issues"
   },
-  "author": "kongbaiming5"
+  "author": "kongbaiming5",
+  "icon": "icon.svg",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
+    }
+  }
 }

@@ -1,58 +1,54 @@
-# dsh-approval-alert
+# 授权提醒 · dsh-approval-alert
 
-[中文](README.zh.md) | English
+中文 | [English](README.en.md)
 
-A macOS approval chime for **DeepSeek Harness**. When DSH is blocked on a human
-decision — a tool approval, an agent question, or a macOS permission dialog — it
-plays a real system sound at your current output volume and repeats until you answer.
+一个 **DeepSeek Harness** 插件：当 DSH 卡在「需要你授权」时，用 macOS 自带系统提示音提醒你。
 
 [![test](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml/badge.svg)](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml)
 [![license](https://img.shields.io/github/license/kongbaiming5/dsh-approval-alert)](LICENSE)
-[![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](package.json)
 
-## What it covers
+## 覆盖范围
 
-| Source | Event | Examples |
-|---|---|---|
-| DSH tool approval | `approval/request` | sandbox escalation, destructive commands, writes outside the workspace |
-| DSH agent questions | `user-questions/request` | `ask_user_question`, plan review (`exit_plan_mode`) |
-| macOS TCC prompts | Unified log `AUTHREQ_PROMPTING` | microphone, camera, screen recording, accessibility, automation, files and folders, Full Disk Access |
-
-The macOS watcher only reacts to prompts whose TCC identity is
-`com.deepseek.dsh` / `DeepSeek Harness`; other applications' permission dialogs
-are ignored. It reads the unified log, so **no Accessibility or Automation grant
-is required**.
-
-## Reminder cadence
-
-The first alert fires **immediately**, then:
-
-| Alert | Wait after the previous alert |
+| 来源 | 例子 |
 |---|---|
-| #1 | immediate (0 s) |
-| #2 | 25 s |
-| #3 | 20 s |
-| #4 | 15 s |
-| #5 | 10 s |
-| #6 and later | 5 s each |
+| DSH 工具审批 | 沙箱升级、危险命令、写工作区外文件 |
+| DSH Agent 提问 | `ask_user_question`、计划审阅 `exit_plan_mode` |
+| macOS 系统权限弹窗 | 麦克风、摄像头、屏幕录制、辅助功能、自动化、文件与文件夹、完全磁盘访问 |
 
-- Each alert is a double chime by default (`burst: 2`, 0.38 s apart).
-- It stops as soon as you allow/reject, answer the question, or the macOS dialog
-  returns a result.
-- Multiple pending requests share one cadence; it stops when all are resolved.
-- After alert #6 there is no alert-count limit. TCC prompts have a separate
-  `systemPromptTimeoutMs` safety cap (10 minutes by default) in case the log
-  result is missed.
+macOS 权限弹窗只处理 TCC identity 为 `com.deepseek.dsh` / `DeepSeek Harness` 的请求，其他 App 的权限弹窗不会触发。
 
-## Requirements
+## 在 DSH 里怎么找到它
 
-- macOS 13 or newer (tested on macOS 26, Apple Silicon).
-- DeepSeek Harness with profile plugins (tested with `0.2.1-rc.2`).
-- Node.js 20+ for the test suite only; the DSH runtime provides Node at runtime.
+安装并启用 bundle 后：
 
-## Install
+1. 打开侧边栏 **插件**；
+2. 在 **已安装插件** 里找到卡片 **「授权提醒」**（包名 `dsh-approval-alert`）；
+3. 卡片右侧开关控制整个 bundle；点进卡片，里面的 `approval-alert` 行也有自己的开关；
+4. 点行标题/配置按钮，打开 **中文配置表单**，保存后立即生效。
 
-### One command (from a clone)
+插件在 DSH 的 **设置 → 内置插件 → 插件列表** 里也会显示为 `approval-alert`，但那只是只读的运行状态；日常配置请用侧边栏「插件」里的表单。
+
+## 提醒节奏
+
+第一次在需要授权的瞬间立即响，之后：
+
+| 第几次 | 距上一次 |
+|---|---|
+| 第 1 次 | 立即（0 秒） |
+| 第 2 次 | 25 秒后 |
+| 第 3 次 | 20 秒后 |
+| 第 4 次 | 15 秒后 |
+| 第 5 次 | 10 秒后 |
+| 第 6 次及以后 | 每次 5 秒后 |
+
+- 每次提醒默认双响（间隔 0.38 秒），可在表单里调「每次响几声」。
+- 你点允许/拒绝、回答问题，或系统弹窗返回结果后，立即停止。
+- 多个请求共用一条节奏，全部处理完才停。
+- macOS 权限弹窗另有 `systemPromptTimeoutMs` 安全上限（默认 10 分钟），防止日志漏掉结果时无限响。
+
+## 安装
+
+### 一键安装（从 GitHub 克隆）
 
 ```bash
 git clone https://github.com/kongbaiming5/dsh-approval-alert.git
@@ -60,166 +56,114 @@ cd dsh-approval-alert
 ./scripts/install.sh desktop
 ```
 
-The script:
+脚本会：
 
-1. resolves the `dsh` CLI (`$DSH_BIN`, `PATH`, or the macOS app bundle),
-2. adds this directory to `$DSH_HOME/profiles/<profile>/package.json`,
-3. appends the loader entry to `$DSH_HOME/profiles/<profile>/cordis.patch.yml`
-   if it is not already present.
+1. 找到 `dsh` CLI（`$DSH_BIN`、`PATH` 或 macOS App 包内路径）；
+2. 把当前目录作为本地包加入 `$DSH_HOME/profiles/<profile>/package.json`；
+3. 把 `dsh-approval-alert` 加入 `dsh.profile.bundles`，让侧边栏「插件」识别它；
+4. 如果检测到旧的「手动 insert」条目，会提示你删除，避免重复挂载。
 
-A running DSH desktop app hot-reloads `cordis.patch.yml`; otherwise restart it.
-`DSH_HOME` defaults to `~/.dsh`; set it explicitly if your profile lives elsewhere.
-Use another profile by passing it as the first argument, e.g. `./scripts/install.sh web`.
+**如果 DSH 正在运行，bundle 列表变更通常需要重启一次 App**；重启后即可在侧边栏「插件」看到「授权提醒」。
 
-### Manual install
+### 通过插件页安装
 
-```bash
-export DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-DSH_BIN="${DSH_BIN:-/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh}"
+侧边栏 **插件 → 添加插件 → 安装第三方插件**，填入本仓库的本地绝对路径，安装完成后启用 bundle。配置表单同样会出现在「授权提醒」的详情页。
 
-"$DSH_BIN" plugin --profile desktop add "file:$PWD"
-```
+### 环境要求
 
-Then append the entry from [`cordis.patch.yml`](cordis.patch.yml) to
-`$DSH_HOME/profiles/desktop/cordis.patch.yml`. If you install from another
-location, `file:` points at that clone; keep the directory in place.
+- macOS 13 或更新版本（在 macOS 26 / Apple Silicon 上实测）。
+- 带 profile 插件机制的 DeepSeek Harness（在 `0.2.1-rc.2` 上实测）。
+- Node.js 20+ 仅用于跑测试；DSH 运行时自带 Node。
 
-> The DSH plugin manager may print
-> `dsh-approval-alert declares no dsh.bundle — installed as a plain dependency`.
-> That is expected for this manual profile-layer install; the loader entry is
-> what mounts the plugin.
+## 配置表单
 
-## Verify
+在「授权提醒」的配置页里可以改：
 
-### Audio path
+| 配置 | 默认 | 说明 |
+|---|---|---|
+| 启用授权提醒 | 开 | 总开关；关闭后所有来源都不响 |
+| 提示音 | `Glass` | macOS 系统音效名，或绝对音频路径 |
+| 音量倍率 | `1` | `afplay -v` 倍率；1 = 跟随当前系统输出音量 |
+| 每次响几声 | `2` | 每次提醒双响；1–4 |
+| 同时弹一条系统通知 | 开 | 首次提醒时弹通知 |
+| DSH 工具审批 | 开 | 审批请求 |
+| Agent 提问 / 计划审阅 | 开 | `ask_user_question`、`exit_plan_mode` |
+| macOS 系统权限弹窗 | 开 | DSH 触发的 TCC 弹窗 |
+| 系统弹窗安全上限 | `600000` | 毫秒；0 表示不自动停止 |
+| 通知语言 | `zh` | 中文 / English |
+| 诊断日志文件 | 空 | 例如 `/tmp/dsh-approval-alert.log` |
 
-Set `startupChime: true` in the profile entry and save the patch. You should hear
-two Glass chimes and see a test notification. Set it back to `false` afterwards.
+保存通过 DSH 的插件配置机制写入 profile patch，不需要手动编辑 YAML。高级用户仍然可以直接编辑 `$DSH_HOME/profiles/<profile>/cordis.patch.yml` 里的 `approval-alert` 配置覆盖。
 
-### macOS permission prompt (microphone)
+## 验证
 
-DSH may already have a microphone decision. Re-arm the prompt:
+### 声音链路
+
+在配置表单里确认「启用授权提醒」为开，保存；触发一个 DSH 审批或系统权限弹窗。第一次应立即响，之后按 25/20/15/10/5 秒节奏重复。
+
+### macOS 权限弹窗（麦克风）
 
 ```bash
 tccutil reset Microphone com.deepseek.dsh
-```
-
-Then trigger a microphone request, for example:
-
-```bash
 ffmpeg -f avfoundation -i ":0" -t 0.5 -y /tmp/dsh-mic-test.wav
 ```
 
-The first chime should fire at the same moment the system dialog appears. Click
-**Allow** or **Don't Allow** and the cadence stops. The reset only affects DSH's
-microphone decision; you can choose again.
+系统弹出「DeepSeek Harness 想访问麦克风」的同时，插件应立即响第一声；点允许/拒绝后停止。这个命令只重置 DSH 的麦克风授权状态，不影响其他 App。
 
-### DSH tool approval
+### DSH 工具审批
 
-Switch the session permission preset to **ask**, then let the agent request a
-wider sandbox mode. The chime fires immediately; approving or rejecting stops it.
+把会话权限策略切到 `ask`，让 Agent 申请更宽的沙箱权限。提示出现时立即响，点允许/拒绝后停止。
 
-## Configuration
+## 工作原理
 
-Edit the `approval-alert` entry in
-`$DSH_HOME/profiles/<profile>/cordis.patch.yml`:
+- **DSH 审批 / 提问**：在 `approval/request` 和 `user-questions/request` 两个 Cordis waterfall 上注册前置监听器；开始提醒后调用 `next()`，不改变原来的审批/回答链路。
+- **macOS TCC 弹窗**：后台运行一条只过滤 `com.apple.TCC` 的 `log stream`。匹配到 `AUTHREQ_PROMPTING` + `com.deepseek.dsh` 就开始提醒；匹配到对应的 `AUTHREQ_RESULT` 就停止。日志流退出时会自动重启。
+- **配置热更新**：所有配置字段都是 `volatile`，表单保存后 Host 直接读取新值，不需要重启插件。
+- **无网络、无凭据**：只调用 `afplay`、`log`，通知回退时用 `osascript`。
 
-```yaml
-- insert:
-    - id: approval-alert
-      name: dsh-approval-alert
-      config:
-        enabled: true
-        sound: Glass               # system sound name or absolute audio path
-        volume: 1                  # afplay multiplier; 1 = current output volume
-        burst: 2                   # chimes per alert
-        alertOnApproval: true      # DSH tool approvals
-        alertOnQuestions: true     # DSH questions / plan review
-        watchSystemPrompts: true   # macOS TCC prompts
-        systemPromptTimeoutMs: 600000  # TCC safety cap (10 min)
-        notify: true               # best-effort system notification
-        startupChime: false        # manual self-test
-        locale: zh                 # notification language: zh | en
-        traceFile: ""              # e.g. /tmp/dsh-approval-alert.log
-```
+## 通知说明
 
-| Key | Default | Meaning |
-|---|---|---|
-| `enabled` | `true` | Master switch |
-| `sound` | `Glass` | Any `/System/Library/Sounds/*.aiff` name, or an absolute path |
-| `volume` | `1` | `afplay -v` multiplier; 1 follows the current output volume |
-| `burst` | `2` | Number of chimes per alert |
-| `alertOnApproval` | `true` | DSH tool approvals |
-| `alertOnQuestions` | `true` | DSH questions and plan review |
-| `watchSystemPrompts` | `true` | Stream macOS TCC prompt/result log entries |
-| `systemPromptTimeoutMs` | `600000` | Stop a TCC alert if no result is seen within this time |
-| `notify` | `true` | Show a notification on the first alert for each request |
-| `startupChime` | `false` | Play a test chime and notification when mounted |
-| `locale` | `zh` | Notification text language (`zh` or `en`) |
-| `traceFile` | `""` | Append trigger/timer diagnostics to a local file |
+首次提醒时会尝试弹一条系统通知。通知优先使用 Electron 原生通知；当前 desktop Host 是纯 Node 进程，拿不到 Electron API，因此会退化为 `osascript display notification`，通知来源可能显示为「脚本编辑器 / Script Editor」。不需要通知就在表单里关掉，声音不受影响。
 
-Sounds: `Basso`, `Blow`, `Bottle`, `Frog`, `Funk`, `Glass`, `Hero`, `Morse`,
-`Ping`, `Pop`, `Purr`, `Sosumi`, `Submarine`, `Tink`.
+## 排查
 
-## How it works
-
-- **DSH approvals/questions.** The plugin registers prepended listeners on the
-  `approval/request` and `user-questions/request` Cordis waterfalls. It starts the
-  cadence and then calls `next()`, so the normal approval/question answerer still
-  receives the request unchanged.
-- **macOS TCC prompts.** A long-lived `log stream` child filters
-  `com.apple.TCC` prompt and result messages. `AUTHREQ_PROMPTING` for
-  `com.deepseek.dsh` starts the cadence; the matching `AUTHREQ_RESULT` stops it.
-  The watcher restarts itself if the log stream exits.
-- **Cadence + audio.** `lib/core.js` owns the 0/25/20/15/10/5 s schedule,
-  deduplication of concurrent requests, `/usr/bin/afplay` playback, notifications,
-  and cleanup.
-- **No network, no credentials.** The only external commands are `afplay`,
-  `log`, and (for the notification fallback) `osascript`.
-
-## Troubleshooting
-
-| Symptom | Check |
+| 现象 | 检查 |
 |---|---|
-| No sound at all | `afplay /System/Library/Sounds/Glass.aiff`; check output volume and mute; check `enabled`; set `traceFile` and look for `play` lines |
-| Sound starts too late/early | The cadence is fixed at 0/25/20/15/10/5 s by design; `burst` only changes chimes per alert |
-| macOS prompt doesn't trigger | `log show --last 1m --predicate 'subsystem == "com.apple.TCC"'`; look for `AUTHREQ_PROMPTING` and `com.deepseek.dsh`; check `watchSystemPrompts` and the trace |
-| Chime repeats forever | The TCC result was missed; check `traceFile` for `tcc result`; `systemPromptTimeoutMs` is the safety cap |
-| Notification says "Script Editor" | The Host does not expose Electron's Notification API, so `osascript` is the fallback; set `notify: false` to disable |
-| Plugin not mounted | Confirm the dependency in `$DSH_HOME/profiles/<profile>/package.json` and the `approval-alert` entry in `cordis.patch.yml`; save the patch to trigger a hot reload |
-| Duplicate chimes | Make sure only one `approval-alert` entry is mounted and the package is installed once |
+| 插件页没有「授权提醒」 | 确认 `dsh.profile.bundles` 包含 `dsh-approval-alert`；重启一次 App；检查 profile 里是否还留着旧的「手动 insert」 |
+| 有卡片但配置页打不开 | 确认 bundle 行 `approval-alert` 是开启状态；重新打开插件页 |
+| 完全没声音 | `afplay /System/Library/Sounds/Glass.aiff`；检查系统音量/静音；确认「启用授权提醒」和对应来源开关 |
+| macOS 弹窗不触发 | `log show --last 1m --predicate 'subsystem == "com.apple.TCC"'` 看有没有 `AUTHREQ_PROMPTING` 和 `com.deepseek.dsh`；打开诊断日志看 `tcc prompt` |
+| 一直响不停 | TCC 结果可能漏了；看诊断日志里有没有 `tcc result`；调小「系统弹窗安全上限」 |
+| 通知显示「脚本编辑器」 | 当前 Host 的回退行为；关掉通知即可 |
 
-## Security and privacy
+## 安全与隐私
 
-- No network requests, telemetry, credentials, or environment inspection.
-- The TCC watcher reads only `com.apple.TCC` prompt/result lines and filters them
-  to the DSH bundle identity; other apps' permission prompts are ignored.
-- `traceFile` is local and contains event names, service names, PIDs, and timing;
-  leave it empty unless debugging.
-- The install script only edits the selected DSH profile; it does not modify the
-  app bundle or system settings.
-- `tccutil reset` is only used in the documentation as an explicit opt-in way to
-  re-test a permission prompt.
+- 不发起网络请求，不读取凭据，不做遥测。
+- TCC watcher 只读 `com.apple.TCC` 的 prompt/result 行，并过滤为 DSH 的 bundle identity；其他 App 的权限弹窗会被忽略。
+- 诊断日志只写本地事件名、服务名、PID 和计时；不调试时留空。
+- 安装脚本只修改选定的 DSH profile，不改 App 包和系统设置。
+- 文档里的 `tccutil reset` 是显式、可选的重新测试权限弹窗的方法。
 
-## Development
+## 开发与测试
 
 ```bash
 npm test
-# or:
-node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs
+# 或：
+node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs test/client.test.mjs
 ```
 
-No dependencies need to be installed for the tests; they use a fake clock, fake
-processes, and real TCC log lines as parser fixtures. Set
-`DSH_APPROVAL_ALERT_NO_SOUND=1` to suppress playback in any manual run.
+测试不需要安装依赖；使用假时钟、假进程、真实 TCC 日志行和假的模块加载器。18 个用例覆盖提醒节奏、TCC 解析、监听器接入和浏览器配置页注册。
 
 ```
-lib/core.js   cadence, afplay, notifications
-lib/tcc.js    TCC log stream + parser
-lib/index.js  Cordis plugin wiring
-test/         Node test runner suites
+lib/core.js    节奏、afplay、通知
+lib/tcc.js     TCC 日志流与解析
+lib/index.js   Cordis Host 插件
+lib/client.js  插件页中文配置表单
+locale/        中文/英文显示名与描述
+icon.svg       插件图标
+test/          Node 内置 test runner 用例
 ```
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT，见 [LICENSE](LICENSE)。
