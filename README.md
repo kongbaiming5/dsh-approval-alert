@@ -87,7 +87,9 @@ cd dsh-approval-alert
 dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
 ```
 
-> 市场目录由人工审核，PR 合并后通常一天内生效。没有 npm 包也能安装；v0.2.1 的 GitHub Release 附带预构建 tarball，市场会优先用它，跳过源码构建。
+> 市场目录由人工审核，PR 合并后通常一天内生效。没有 npm 包也能安装；最新 GitHub Release 附带预构建 tarball，市场会优先用它，跳过源码构建。
+
+> Web profile 也能正常启动；配置表单依赖插件管理器，因此在带插件管理器的 desktop profile 中显示。
 
 ## 配置表单
 

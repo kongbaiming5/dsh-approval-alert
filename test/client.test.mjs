@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 const loaded = []
 globalThis.window = {
@@ -48,4 +49,13 @@ test('client module registers the Chinese row config page', () => {
   assert.equal(registration.options.name, 'plugins.row.config')
   assert.equal(registration.options.key, 'dsh-approval-alert#approval-alert')
   assert.match(registration.component({ view: 'summary' }), /提示音/)
+})
+
+
+test('bundle manifest keeps the web profile bootable', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml')
+  assert.equal(pkg.dsh.client.platform, 'web')
+  assert.equal(pkg.dsh.client.immediately, true)
+  assert.equal('inject' in pkg.dsh.client, false, 'do not hard-depend on UI packages absent from the web profile')
 })

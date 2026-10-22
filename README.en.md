@@ -90,7 +90,9 @@ You can also install it directly from GitHub:
 dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
 ```
 
-> The catalog is curated; entries usually appear within a day of the PR merging. No npm package is required. The v0.2.1 GitHub Release carries a prebuilt tarball, which the market prefers over a source build.
+> The catalog is curated; entries usually appear within a day of the PR merging. No npm package is required. The latest GitHub Release carries a prebuilt tarball, which the market prefers over a source build.
+
+> The web profile boots cleanly too; the config form appears where the plugin manager is composed (the desktop profile).
 
 ## Config form
 
