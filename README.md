@@ -5,6 +5,7 @@
 一个 **DeepSeek Harness** 插件：当 DSH 卡在「需要你授权」时，用 macOS 自带系统提示音提醒你。
 
 [![test](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml/badge.svg)](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml)
+[![dsh.so risk](https://www.dsh.so/badge/dsh-approval-alert.svg)](https://www.dsh.so/artifact/dsh-approval-alert/)
 [![license](https://img.shields.io/github/license/kongbaiming5/dsh-approval-alert)](LICENSE)
 
 ## 覆盖范围
@@ -77,7 +78,8 @@ cd dsh-approval-alert
 
 ## 插件市场
 
-本插件已向 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 提交收录，合并后会出现在 DSH 社区插件市场（侧边栏 **插件 → Discover** / 插件市场）里，可搜索 **「授权提醒」** 或 `dsh-approval-alert`。
+- **dsh.so 插件市场**：已收录，见 [dsh.so 插件页](https://www.dsh.so/artifact/dsh-approval-alert/)（页面上也有本 README 顶部的作者徽章）。
+- **DSH 社区插件目录**：已向 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 提交收录 PR，合并后会出现在侧边栏 **插件 → Discover** / 插件市场，可搜索 **「授权提醒」** 或 `dsh-approval-alert`。
 
 也可以直接从 GitHub 安装：
 

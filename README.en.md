@@ -7,6 +7,7 @@ on a human decision: a tool approval, an agent question, or a macOS permission
 prompt. It ships as a bundle with a switch and a config form in the Plugins page.
 
 [![test](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml/badge.svg)](https://github.com/kongbaiming5/dsh-approval-alert/actions/workflows/test.yml)
+[![dsh.so risk](https://www.dsh.so/badge/dsh-approval-alert.svg)](https://www.dsh.so/artifact/dsh-approval-alert/)
 [![license](https://img.shields.io/github/license/kongbaiming5/dsh-approval-alert)](LICENSE)
 
 ## What it covers
@@ -80,7 +81,8 @@ available on the card.
 
 ## Plugin marketplace
 
-The plugin has been submitted to the [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) catalog, which powers the DSH community plugin market (sidebar **Plugins → Discover**). Once the entry is merged, search for **Approval Chime** or `dsh-approval-alert`.
+- **dsh.so marketplace**: already listed — see the [dsh.so artifact page](https://www.dsh.so/artifact/dsh-approval-alert/) (the badge at the top of this README links there).
+- **DSH community catalog**: submitted to [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin); once merged, search for **Approval Chime** or `dsh-approval-alert` under **Plugins → Discover**.
 
 You can also install it directly from GitHub:
 
