@@ -1,3 +1,33 @@
+# v0.3.0 · 覆盖 macOS 管理员密码弹窗
+
+新增第四类触发来源：`SecurityAgent` 的提权密码表单（「想要进行更改」）。
+
+之前只监听 TCC（`com.apple.TCC` / `AUTHREQ_PROMPTING`），而 `sudo`、`sfltool`、
+安装器请求 `system.privilege.admin` 时弹出的是 Authorization Services 的密码框，
+走 `com.apple.Authorization` 子系统，没有任何 `AUTHREQ_*` 行，所以插件完全不会响。
+
+## 新增
+
+- `lib/tcc.js`：抽出共用的 `log stream` 底座，新增 `createPrivilegeWatcher`、
+  `parsePrivilegeLine`、`PRIVILEGE_PREDICATE`。
+  - `Using modern UI` / `SC confirmation dialog detected` → 密码框出现。
+  - `ExecuteWithPrivileges` 的完成记录（带 `successfulMechanism`）→ 密码框关闭。
+- `lib/index.js`：两条链路共用一个系统弹窗注册表与提醒引擎；同一对话框同时命中
+  TCC 与提权两条线时只响一次（2 秒去重窗口），但仍各自跟踪结束信号。
+- 新配置：`watchPrivilegePrompts`（默认开）、`privilegePromptTimeoutMs`（默认
+  `180000`，点取消/通过后立即停止，仅作兜底）。
+- 配置表单、`cordis.patch.yml`、locale 描述同步更新。
+- 测试：新增提权解析、流式监听、以及用假 `log` 脚本跑通「出现→响→完成→停」的
+  端到端用例，共 25 个。
+
+## 说明
+
+- 只读日志，不读密码、不注入进程、不需要任何隐私授权。
+- 提权弹窗无法归属到某个 App，所以不按 bundle identity 过滤；不想要就在表单里
+  单独关掉「macOS 管理员密码弹窗」。
+
+---
+
 # v0.2.2 · 修复 web profile 启动，补齐插件市场徽章
 
 本版修复了 dsh.so 安装验证中暴露的 **L5 Web 冒烟失败**，并补上 dsh.so 作者徽章。

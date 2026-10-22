@@ -15,8 +15,11 @@
 | DSH 工具审批 | 沙箱升级、危险命令、写工作区外文件 |
 | DSH Agent 提问 | `ask_user_question`、计划审阅 `exit_plan_mode` |
 | macOS 系统权限弹窗 | 麦克风、摄像头、屏幕录制、辅助功能、自动化、文件与文件夹、完全磁盘访问 |
+| macOS 管理员密码弹窗 | `sudo`、`sfltool`、安装器请求 `system.privilege.admin` 时弹出的「想要进行更改」密码框 |
 
 macOS 权限弹窗只处理 TCC identity 为 `com.deepseek.dsh` / `DeepSeek Harness` 的请求，其他 App 的权限弹窗不会触发。
+
+管理员密码弹窗走的是另一条链路（`com.apple.Authorization` / `SecurityAgent`），不属于 TCC，也不区分发起 App，所以单独有 `watchPrivilegePrompts` 开关。若同一个对话框同时命中两条链路，只响一次。
 
 ## 在 DSH 里怎么找到它
 
@@ -46,6 +49,7 @@ macOS 权限弹窗只处理 TCC identity 为 `com.deepseek.dsh` / `DeepSeek Harn
 - 你点允许/拒绝、回答问题，或系统弹窗返回结果后，立即停止。
 - 多个请求共用一条节奏，全部处理完才停。
 - macOS 权限弹窗另有 `systemPromptTimeoutMs` 安全上限（默认 10 分钟），防止日志漏掉结果时无限响。
+- 管理员密码弹窗在点「取消」或输入密码通过后立即停，另有 `privilegePromptTimeoutMs` 上限（默认 3 分钟）。
 
 ## 安装
 
@@ -106,6 +110,8 @@ dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
 | Agent 提问 / 计划审阅 | 开 | `ask_user_question`、`exit_plan_mode` |
 | macOS 系统权限弹窗 | 开 | DSH 触发的 TCC 弹窗 |
 | 系统弹窗安全上限 | `600000` | 毫秒；0 表示不自动停止 |
+| macOS 管理员密码弹窗 | 开 | `SecurityAgent` 的提权表单（`sudo`、`sfltool`、安装器） |
+| 密码弹窗安全上限 | `180000` | 毫秒；点取消/通过后立即停 |
 | 通知语言 | `zh` | 中文 / English |
 | 诊断日志文件 | 空 | 例如 `/tmp/dsh-approval-alert.log` |
 
@@ -130,10 +136,19 @@ ffmpeg -f avfoundation -i ":0" -t 0.5 -y /tmp/dsh-mic-test.wav
 
 把会话权限策略切到 `ask`，让 Agent 申请更宽的沙箱权限。提示出现时立即响，点允许/拒绝后停止。
 
+### macOS 管理员密码弹窗
+
+```bash
+osascript -e 'do shell script "true" with administrator privileges'
+```
+
+弹出的「想要进行更改」密码框出现时立即响第一声；输入密码或点取消后停止。这个命令只用管理员权限执行 `true`，不改任何东西。
+
 ## 工作原理
 
 - **DSH 审批 / 提问**：在 `approval/request` 和 `user-questions/request` 两个 Cordis waterfall 上注册前置监听器；开始提醒后调用 `next()`，不改变原来的审批/回答链路。
 - **macOS TCC 弹窗**：后台运行一条只过滤 `com.apple.TCC` 的 `log stream`。匹配到 `AUTHREQ_PROMPTING` + `com.deepseek.dsh` 就开始提醒；匹配到对应的 `AUTHREQ_RESULT` 就停止。日志流退出时会自动重启。
+- **macOS 管理员密码弹窗**：另起一条只过滤 `SecurityAgent` + `com.apple.Authorization` 的 `log stream`。`Using modern UI` / `SC confirmation dialog detected` 视为密码框出现，`ExecuteWithPrivileges` 的完成记录视为关闭。两条链路共用一个提醒引擎与同一个安全上限机制。
 - **配置热更新**：所有配置字段都是 `volatile`，表单保存后 Host 直接读取新值，不需要重启插件。
 - **无网络、无凭据**：只调用 `afplay`、`log`，通知回退时用 `osascript`。
 
@@ -150,12 +165,15 @@ ffmpeg -f avfoundation -i ":0" -t 0.5 -y /tmp/dsh-mic-test.wav
 | 完全没声音 | `afplay /System/Library/Sounds/Glass.aiff`；检查系统音量/静音；确认「启用授权提醒」和对应来源开关 |
 | macOS 弹窗不触发 | `log show --last 1m --predicate 'subsystem == "com.apple.TCC"'` 看有没有 `AUTHREQ_PROMPTING` 和 `com.deepseek.dsh`；打开诊断日志看 `tcc prompt` |
 | 一直响不停 | TCC 结果可能漏了；看诊断日志里有没有 `tcc result`；调小「系统弹窗安全上限」 |
+| 密码弹窗不响 | `log show --last 1m --predicate 'process == "SecurityAgent" AND subsystem == "com.apple.Authorization"'` 看有没有 `Using modern UI`、`SC confirmation dialog detected`；诊断日志看 `privilege prompt` / `privilege resolve` |
+| 密码弹窗响了不停 | 打开诊断日志确认有没有 `privilege resolve reason=completed`；没有就等 `privilegePromptTimeoutMs` 上限 |
 | 通知显示「脚本编辑器」 | 当前 Host 的回退行为；关掉通知即可 |
 
 ## 安全与隐私
 
 - 不发起网络请求，不读取凭据，不做遥测。
 - TCC watcher 只读 `com.apple.TCC` 的 prompt/result 行，并过滤为 DSH 的 bundle identity；其他 App 的权限弹窗会被忽略。
+- 密码弹窗 watcher 只读 `SecurityAgent` 在 `com.apple.Authorization` 子系统里的对话框生命周期行，不读取密码、不注入进程、不需要任何授权。
 - 诊断日志只写本地事件名、服务名、PID 和计时；不调试时留空。
 - 安装脚本只修改选定的 DSH profile，不改 App 包和系统设置。
 - 文档里的 `tccutil reset` 是显式、可选的重新测试权限弹窗的方法。
@@ -168,11 +186,11 @@ npm test
 node --test test/core.test.mjs test/index.test.mjs test/tcc.test.mjs test/client.test.mjs
 ```
 
-测试不需要安装依赖；使用假时钟、假进程、真实 TCC 日志行和假的模块加载器。18 个用例覆盖提醒节奏、TCC 解析、监听器接入和浏览器配置页注册。
+测试不需要安装依赖；使用假时钟、假进程、真实 TCC / SecurityAgent 日志行和假的模块加载器。25 个用例覆盖提醒节奏、TCC 解析、密码弹窗解析、监听器接入和浏览器配置页注册。
 
 ```
 lib/core.js    节奏、afplay、通知
-lib/tcc.js     TCC 日志流与解析
+lib/tcc.js     TCC 与 SecurityAgent 日志流与解析
 lib/index.js   Cordis Host 插件
 lib/client.js  插件页中文配置表单
 locale/        中文/英文显示名与描述

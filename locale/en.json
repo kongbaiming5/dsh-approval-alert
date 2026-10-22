@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "授权提醒 · Approval Chime",
-    "description": "Plays a macOS system sound for DSH approvals, agent questions, and macOS permission prompts, with a 0/25/20/15/10/5s reminder cadence."
+    "description": "Plays a macOS system sound for DSH approvals, agent questions, macOS permission prompts, and administrator password sheets, with a 0/25/20/15/10/5s reminder cadence."
   }
 }

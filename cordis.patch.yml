@@ -14,6 +14,8 @@
         alertOnQuestions: true
         watchSystemPrompts: true
         systemPromptTimeoutMs: 600000
+        watchPrivilegePrompts: true
+        privilegePromptTimeoutMs: 180000
         notify: true
         startupChime: false
         locale: zh
