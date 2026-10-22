@@ -78,6 +78,18 @@ available on the card.
 - DeepSeek Harness with profile bundles (tested with `0.2.1-rc.2`).
 - Node.js 20+ for tests only.
 
+## Plugin marketplace
+
+The plugin has been submitted to the [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) catalog, which powers the DSH community plugin market (sidebar **Plugins → Discover**). Once the entry is merged, search for **Approval Chime** or `dsh-approval-alert`.
+
+You can also install it directly from GitHub:
+
+```bash
+dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
+```
+
+> The catalog is curated; entries usually appear within a day of the PR merging. No npm package is required. The v0.2.1 GitHub Release carries a prebuilt tarball, which the market prefers over a source build.
+
 ## Config form
 
 The row config page exposes:

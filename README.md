@@ -75,6 +75,18 @@ cd dsh-approval-alert
 - 带 profile 插件机制的 DeepSeek Harness（在 `0.2.1-rc.2` 上实测）。
 - Node.js 20+ 仅用于跑测试；DSH 运行时自带 Node。
 
+## 插件市场
+
+本插件已向 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 提交收录，合并后会出现在 DSH 社区插件市场（侧边栏 **插件 → Discover** / 插件市场）里，可搜索 **「授权提醒」** 或 `dsh-approval-alert`。
+
+也可以直接从 GitHub 安装：
+
+```bash
+dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
+```
+
+> 市场目录由人工审核，PR 合并后通常一天内生效。没有 npm 包也能安装；v0.2.1 的 GitHub Release 附带预构建 tarball，市场会优先用它，跳过源码构建。
+
 ## 配置表单
 
 在「授权提醒」的配置页里可以改：

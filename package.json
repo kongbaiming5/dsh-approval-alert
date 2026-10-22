@@ -1,6 +1,6 @@
 {
   "name": "dsh-approval-alert",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DeepSeek Harness 授权提醒：DSH 审批、Agent 提问与 macOS 权限弹窗出现时播放系统声音，带插件页开关和中文配置表单。",
   "type": "module",
   "main": "lib/index.js",

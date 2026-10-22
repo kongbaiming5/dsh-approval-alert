@@ -1,28 +1,20 @@
-# v0.2.0 · 插件页开关与中文配置表单
+# v0.2.1 · 插件市场上架
 
-`dsh-approval-alert` 现在是一个标准 DSH bundle，会出现在侧边栏 **插件 → 已安装插件**，带开关和中文配置表单。
+本版把 `dsh-approval-alert` 提交到 DSH 社区插件市场目录（awesome-dsh-plugin），并提供 GitHub Release 预构建 tarball，市场安装时可跳过源码构建。
 
 ## 新增
 
-- **插件页可见**：卡片名称「授权提醒」，带图标和中文描述。
-- **开关**：卡片开关控制整个 bundle；`approval-alert` 行也有独立开关。
-- **中文配置表单**：提示音、音量、每次响几声、DSH 审批、Agent 提问、macOS 权限弹窗、系统弹窗安全上限、通知、通知语言、诊断日志；保存后立即生效。
-- **显示元数据**：`locale/zh.json`、`locale/en.json` 和原创 `icon.svg`。
-- **配置热更新**：所有 Config 字段改为 `volatile`，表单保存不需要重启插件。
-- **测试**：新增浏览器配置页注册测试，共 18 个用例通过。
+- **插件市场收录**：向 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 提交条目，分类 `notify`；合并后可在 DSH 插件市场搜索「授权提醒」或 `dsh-approval-alert`。
+- **预构建 tarball**：`dsh-approval-alert-0.2.1.tgz` 作为 GitHub Release 附件，供市场优先安装。
+- **README 市场安装说明**：支持 `dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert`。
 
-## 保留
+## v0.2.0 功能回顾
 
-- 第一次提醒立即响，之后 25 / 20 / 15 / 10 秒，第六次起每 5 秒一次。
-- 覆盖 DSH 工具审批、Agent 提问/计划审阅，以及 DSH 触发的 macOS TCC 权限弹窗。
+- 标准 DSH bundle：侧边栏 **插件 → 已安装插件** 显示「授权提醒」卡片、开关和中文配置表单。
+- 覆盖 DSH 工具审批、Agent 提问/计划审阅、macOS TCC 权限弹窗（`log stream` + `AUTHREQ_PROMPTING`）。
+- 提醒节奏：第一次立即响，之后 25 / 20 / 15 / 10 秒，第六次起每 5 秒一次。
 - 声音用 `afplay`，跟随系统输出音量；默认 Glass 双响。
-- macOS 权限弹窗通过 `log stream` + `AUTHREQ_PROMPTING` / `AUTHREQ_RESULT` 检测，不需要 Accessibility 权限。
-
-## 升级注意
-
-- 以前用手动 `insert` 条目安装的用户，请删除 `cordis.patch.yml` 里的旧条目；bundle 会提供同名行，保留旧条目会重复挂载。
-- 安装/启用 bundle 后，建议重启一次 DeepSeek Harness，让 `dsh.profile.bundles` 的变更生效。
-- 安装脚本 `scripts/install.sh` 会自动把包加入 `dsh.profile.bundles`，并提示清理旧条目。
+- 配置表单保存后立即生效（volatile Config）。
 
 ## 安装
 
@@ -32,17 +24,20 @@ cd dsh-approval-alert
 ./scripts/install.sh desktop
 ```
 
-然后打开侧边栏 **插件**，在「已安装插件」里找到「授权提醒」。
+或从 GitHub 直接安装：
+
+```bash
+dsh plugin --profile desktop add github:kongbaiming5/dsh-approval-alert
+```
+
+## Tarball 校验
+
+```text
+dsh-approval-alert-0.2.1.tgz
+SHA-256: 05734382a64b9881b82b8406312e568276edf9ed947e96572dc209633c48f5ea
+```
 
 ## 验证
 
-- 在配置表单里打开「启用授权提醒」并保存。
-- 触发 DSH 审批或 macOS 权限弹窗：第一声应立即响。
-- 麦克风弹窗复测：
-
-```bash
-tccutil reset Microphone com.deepseek.dsh
-ffmpeg -f avfoundation -i ":0" -t 0.5 -y /tmp/dsh-mic-test.wav
-```
-
-- 测试：`npm test`（18 个用例）。
+- `npm test`：18 个用例通过。
+- 本机已验证 Host watcher（`log stream`）运行、声音正常。
